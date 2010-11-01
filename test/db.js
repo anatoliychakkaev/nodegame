@@ -13,7 +13,12 @@ require('../lib/db').mix_persistence_methods(models);
 models.useCache = true;
 models.debugMode = false;
 
-exports['should create player'] = function (test) {
+// I like rspec-style
+function it(should, test_case) {
+    exports[should] = test_case;
+}
+
+it('should create player', function (test) {
 
     test.expect(4);
 
@@ -33,9 +38,9 @@ exports['should create player'] = function (test) {
 
         test.done();
     });
-};
+});
 
-exports['should load player when it exists'] = function (test) {
+it('should load player when it exists', function (test) {
 
     test.expect(3);
 
@@ -57,9 +62,9 @@ exports['should load player when it exists'] = function (test) {
             });
         });
     });
-};
+});
 
-exports['should not load player when it not exists'] = function (test) {
+it('should not load player when it not exists', function (test) {
 
     test.expect(2);
 
@@ -72,9 +77,9 @@ exports['should not load player when it not exists'] = function (test) {
 
         test.done();
     });
-};
+});
 
-exports['should save all attributes'] = function (test) {
+it('should save all attributes', function (test) {
 
     test.expect(2);
 
@@ -91,9 +96,9 @@ exports['should save all attributes'] = function (test) {
             });
         });
     });
-};
+});
 
-exports['should reload attributes'] = function (test) {
+it('should reload attributes', function (test) {
 
     test.expect(2);
 
@@ -109,4 +114,60 @@ exports['should reload attributes'] = function (test) {
             });
         });
     });
-};
+});
+
+it('should remember when time of object creation', function (test) {
+    models.Player.create(function () {
+        test.ok(this.created_at, 'Time accesible as attribute');
+        this.created_at = false;
+        this.reload(function () {
+            test.ok(this.created_at, 'Time stored in database');
+            test.done();
+        });
+    });
+});
+
+it('should check existance of record', function (test) {
+    models.Player.create(function (player_id) {
+        models.Player.exists(player_id, function (exists) {
+            test.ok(exists, 'Player exists');
+            test.done();
+        });
+    });
+});
+
+
+it('should destroy record', function (test) {
+    models.Player.create(function (player_id) {
+        var player = this;
+        models.Player.exists(player_id, function (exists) {
+            test.ok(exists, 'Player exists');
+            player.destroy(function (err, success) {
+                test.ok(!err, 'No errors required');
+                test.ok(success, 'Success returned');
+                models.Player.exists(player_id, function (exists) {
+                    test.ok(!exists, 'Object not exists');
+                    test.done();
+                });
+            });
+        });
+    });
+});
+
+it('should work really fast', function (test) {
+    test.expect(1);
+
+    var n = 0;
+    for (var i = 0; i < 10000; i++) {
+        (function (i) {
+            ++n;
+            models.Player.create(function (player_id) {
+                --n;
+                if (n === 0) {
+                    test.ok(true);
+                    test.done();
+                }
+            });
+        })(i);
+    }
+});
