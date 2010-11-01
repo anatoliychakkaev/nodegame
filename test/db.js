@@ -1,10 +1,12 @@
 var models = {
-    Player: function (type) {
+    Player: function Player(game_id) {
+        this.game_id = game_id;
+
+        Player.attributes = {
+            game_id: 'int'
+        }
     }
 }
-models.Player.attributes = {
-    game_id: 'int'
-};
 
 require('../lib/db').mix_persistence_methods(models);
 
@@ -13,9 +15,12 @@ models.debugMode = false;
 
 exports['should create player'] = function (test) {
 
-    test.expect(3);
+    test.expect(4);
 
-    models.Player.create(function (id) {
+    models.Player.create(15, function (id) {
+
+        test.strictEqual(this.game_id, 15,
+        'Parameter passed to constructor should be applied');
 
         test.ok(this.constructor === models.Player,
         'User should have id');
