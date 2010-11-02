@@ -4,3 +4,6 @@
 [submodule "vendor/js-yaml"]
 	path = vendor/js-yaml
 	url = http://github.com/visionmedia/js-yaml.git
+[submodule "vendor/orm"]
+	path = vendor/orm
+	url = git://github.com/1602/orm.git
