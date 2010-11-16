@@ -1,2 +1,30 @@
-h1= title
-p Welcome to #{title}
+:javascript
+  | var BOARD = {
+  |   player:   '#{player.color}',
+  |   color:    '#{player.game.color || 'b'}',
+  |   state:    '#{player.game.state(player)}',
+  |   position: #{player.game.boardToJSON()},
+  |   secret:   '#{secret}'
+  | };
+
+//script( src: 'http://cdn.socket.io/stable/socket.io.js' )
+script( src: 'socket.io.js' )
+script( src: 'jquery.js' )
+script( src: 'reversi.js' )
+script( src: 'reversi-cli.js' )
+
+.user_bar
+  .avatar
+    img( src: 'https://graph.facebook.com/' + user.id + '/picture')
+  small.username
+    #{user.name}
+
+#board
+  .info
+  canvas( width: '300', height: '300' )
+
+#opponent_info.user_bar
+  .avatar
+    img( src: 'https://graph.facebook.com/' + opponent.id + '/picture')
+  small.username
+    #{opponent.name}
