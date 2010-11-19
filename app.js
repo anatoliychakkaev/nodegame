@@ -16,7 +16,7 @@ var session_key = 'connect.sidw';
 
 app.configure(function(){
     app.use(express.staticProvider(__dirname + '/public'));
-    app.set('views', __dirname + '/views');
+    app.set('views', __dirname + '/app/views');
     app.use(express.cookieDecoder());
     app.use(express.session({ store: store, key: session_key }));
     app.use(facebooker.connect);
@@ -36,7 +36,7 @@ app.configure('production', function(){
 
 // Controller
 
-var c = require('./lib/controller.js');
+var c = require('./app/controller.js');
 
 // Routes
 

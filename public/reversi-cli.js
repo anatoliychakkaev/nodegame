@@ -3,7 +3,7 @@ $.fn.reversi = function (player, current_color, board, drawer) {
 };
 $(function () {
     var undef;
-    var cell_size = 60;
+    var cell_size = 40;
     var padding = 10;
     var board_size = cell_size * 8 + padding * 2;
     var board = $('#board canvas')[0];
@@ -191,12 +191,16 @@ $(function () {
         s[res.player == 'w' ? 'B' : 'W'] = s['0'];
         game = $('#board').reversi(res.player, res.color == 'b', res.position, update_board);
         game.join();
+        var no_socket = false;
         game.after_move = function (coords) {
             if (!game.pwned_by(res.player)) {
                 info.html('Opponent\'s turn.');
+            } else {
+                info.html('Your turn.');
             }
-            console.log('send to socket: move,', coords);
-            SOCKET.send({action: "move", coords: coords});
+            if (!no_socket) {
+                SOCKET.send({action: "move", coords: coords});
+            }
         };
         var SOCKET = new io.Socket(document.location.hostname);
         SOCKET.connect();
@@ -216,23 +220,21 @@ $(function () {
 
         SOCKET.on('message', function (msg) {
             if (typeof msg == 'string') {
-                console.log(msg);
                 msg = JSON.parse(msg);
             }
             switch (msg.action) {
                 case 'opponent_connected':
+                    game.join();
                     info.html('Opponent joined. You can move.');
                     var $opp = $('#opponent_info');
-                    console.log($opp);
-                    $opp.find('.avatar img').attr('src', 'http://graph.facebook.com/' + msg.user.info.id + '/picture');
-                    $opp.find('.username').html(msg.user.info.name);
-                    game.join();
+                    $opp.find('.avatar img').attr('src', 'http://graph.facebook.com/' + msg.user.id + '/picture');
+                    $opp.find('.username').html(msg.user.name);
                 break;
                 case 'move':
-                    console.log('move to', msg.coords);
-                    info.html('Your turn.');
                     game.join();
-                    game.move(msg.coords, true);
+                    no_socket = true;
+                    game.move(msg.coords);
+                    no_socket = false;
                 break;
                 case 'end':
                 info.html('End game. You ' + (

@@ -2,3 +2,14 @@ body {
   padding: 50px;
   font: 14px "Lucida Grande", "Helvetica Nueue", Arial, sans-serif;
 }
+
+.user_bar {
+  width: 120px;
+  float: left;
+}
+.user_bar .avatar {
+  padding: 10px;
+}
+#board {
+  float: left;
+}

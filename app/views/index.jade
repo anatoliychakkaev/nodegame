@@ -1,0 +1,32 @@
+:javascript
+  | var BOARD = {
+  |   player:   '#{player.color}',
+  |   color:    '#{player.game.color || 'b'}',
+  |   state:    '#{player.game.state(player)}',
+  |   position: #{player.game.boardToJSON()},
+  |   secret:   '#{secret}'
+  | };
+
+//script( src: 'http://cdn.socket.io/stable/socket.io.js' )
+script( src: 'socket.io.js' )
+script( src: 'jquery.js?' + (new Date).getTime())
+script( src: 'reversi.js?' + (new Date).getTime())
+script( src: 'reversi-cli.js?' + (new Date).getTime())
+
+#starter.user_bar( style: starter ? '' : 'display:none' )
+  .avatar
+    img( src: 'https://graph.facebook.com/' + starter.id + '/picture?type=large')
+  small.username
+    #{starter.name}
+  .color.black black
+
+#board
+  .info
+  canvas( width: '300', height: '300' )
+
+#opponent_info.user_bar( style: opponent ? '' : 'display:none' )
+  .avatar
+    img( src: 'https://graph.facebook.com/' + (opponent ? opponent.id : 1) + '/picture?type=large')
+  small.username
+    #{opponent ? opponent.name : ''}
+  .color.white white
