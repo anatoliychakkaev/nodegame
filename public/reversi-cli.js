@@ -229,6 +229,7 @@ $(function () {
                     var $opp = $('#opponent_info');
                     $opp.find('.avatar img').attr('src', 'http://graph.facebook.com/' + msg.user.id + '/picture');
                     $opp.find('.username').html(msg.user.name);
+                    $opp.show();
                 break;
                 case 'move':
                     game.join();

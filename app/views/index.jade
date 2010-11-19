@@ -15,7 +15,7 @@ script( src: 'reversi-cli.js?' + (new Date).getTime())
 
 #starter.user_bar( style: starter ? '' : 'display:none' )
   .avatar
-    img( src: 'https://graph.facebook.com/' + starter.id + '/picture?type=large')
+    img( src: 'https://graph.facebook.com/' + starter.id + '/picture')
   small.username
     #{starter.name}
   .color.black black

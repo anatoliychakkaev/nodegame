@@ -3,7 +3,8 @@ function Player() {
 Player.attributes = {
     game_id: 'int',
     color: 'string',
-    user: 'user'
+    user: 'user',
+    score: 'int'
 };
 
 Player.prototype = {
@@ -16,12 +17,14 @@ Player.prototype = {
             console.log('publish to channel', player.channel, 'detected by subscriber', player.id);
             socket.send(message.toString());
         });
+        player.game.player_connected(player);
     },
     disconnect: function () {
-        console.log('free channel', this.channel);
+        // free database connection
         this.pubsub_client.unsubscribeFrom(this.channel);
-        console.log('close connection to database');
         this.pubsub_client.close();
+        // notify game
+        this.game.player_disconnected(this);
     },
     perform: function (message) {
         console.log('player', this.id, 'perform');

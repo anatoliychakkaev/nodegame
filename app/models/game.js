@@ -40,6 +40,7 @@ Game.find_free_or_create = function (params, callback) {
     });
 };
 
+
 /**
  * Instance methods
  **/
@@ -76,20 +77,10 @@ Game.prototype = {
         }
     },
     set_starter: function (player, callback) {
-        this.generic_user_setter('starter', player, callback);
+        generic_user_setter(this, 'starter', player, callback);
     },
     set_opponent: function (player, callback) {
-        this.generic_user_setter('opponent', player, callback);
-    },
-    generic_user_setter: function (role, player, callback) {
-        var self = this;
-        self.update_attribute(role, player.id, function () {
-            player.get('user', function (user) {
-                self.update_attribute('cached_' + role, user.public_params(), function () {
-                    callback.call(self);
-                });
-            });
-        });
+        generic_user_setter(this, 'opponent', player, callback);
     },
     state: function (player) {
         if (!this.opponent) return 'wait_opponent';
@@ -131,7 +122,25 @@ Game.prototype = {
                 }
             });
         }
+    },
+    player_connected: function (player) {
+    },
+    player_disconnected: function (player) {
     }
 };
+
+/**
+ * Private methods
+ **/
+
+function generic_user_setter(game, role, player, callback) {
+    game.update_attribute(role, player.id, function () {
+        player.get('user', function (user) {
+            game.update_attribute('cached_' + role, user.public_params(), function () {
+                callback.call(game);
+            });
+        });
+    });
+}
 
 exports.Game = Game;

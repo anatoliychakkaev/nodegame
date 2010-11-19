@@ -14,14 +14,16 @@ module.exports = {
     loadPlayer: function (req, res, next) {
         console.log('req.user = ');
         console.log(req.user);
-        if (!req.session.player_id) {
+        if (!req.user.player['reversi']) {
             m.Player.create({user: req.session.fb.user.id}, function () {
-                req.session.player_id = this.id;
-                req.player = this;
-                this.loadGame('reversi', next);
+                var player = this;
+                req.player = player;
+                req.user.set_player('reversi', player, function () {
+                    player.loadGame('reversi', next);
+                });
             });
         } else {
-            m.Player.find(req.session.player_id, function (err) {
+            m.Player.find(req.user.player['reversi'], function (err) {
                 if (!err) {
                     req.player = this;
                     this.loadGame('reversi', next);
