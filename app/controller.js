@@ -6,8 +6,14 @@ module.exports = {
             next(new Error('Session required'));
             return;
         }
-        console.log('session is ok');
-            console.log(req.session);
+        m.User.find(req.session.fb.user.id, function () {
+            req.user = this;
+            module.exports.loadPlayer(req, res, next);
+        });
+    },
+    loadPlayer: function (req, res, next) {
+        console.log('req.user = ');
+        console.log(req.user);
         if (!req.session.player_id) {
             m.Player.create({user: req.session.fb.user.id}, function () {
                 req.session.player_id = this.id;
