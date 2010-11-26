@@ -10,18 +10,21 @@ var express = require('express'),
     facebooker = require('./lib/facebooker.js'),
     io = require('socket.io');
 
+global.facebooker = facebooker;
+
 var session_key = 'connect.sidw';
 
 // Configuration
 
 app.configure(function(){
     app.use(express.staticProvider(__dirname + '/public'));
+    //app.use(express.logger());
     app.set('views', __dirname + '/app/views');
     app.use(express.cookieDecoder());
     app.use(express.session({ store: store, key: session_key }));
-    app.use(facebooker.connect);
     app.use(express.bodyDecoder());
     app.use(express.methodOverride());
+    app.use(facebooker.connect);
     app.use(express.compiler({ src: __dirname + '/public', enable: ['less'] }));
     app.use(app.router);
 });
@@ -37,12 +40,23 @@ app.configure('production', function(){
 // Controller
 
 var c = require('./app/controller.js');
+var create_routes = require('./lib/routing.js').create_routes;
 
 // Routes
 
-app.get('/',     facebooker.check_connection, c.loadUser, c.index);
-//app.get('/wait', c.loadUser, c.wait);
-//app.get('/move', c.loadUser, c.move);
+console.log(global.before_filter);
+app.get('/',     facebooker.check_connection, global.before_filter.loadUser, c.index);
+create_routes(app, 'admin/permissions',
+    {   'GET  /': 'index'
+    ,   'POST /': 'create'
+    ,   'GET  /new': 'new'
+    ,   'DELETE  /:id/destroy': 'destroy'
+    ,   'POST /update': 'update'
+    ,   'GET  /edit/:id': 'edit'
+    ,   'GET  /:id': 'show'
+}
+);
+
 
 // Only listen on $ node app.js
 
@@ -55,18 +69,26 @@ if (!module.parent) {
 
     socket.on('connection', function(client){
         var player;
+        var request = {};
+
         function authorize(session_hash) {
             console.log('client connected');
             store.get(session_hash, function (err, session) {
-                client.request.session = session;
-                c.loadUser(client.request, client, function () {
-                    player = client.request.player;
-                    if (player) {
-                        player.connect(client);
-                    } else {
-                        throw new Error('Player not defined');
-                    }
-                });
+                if (err) {
+                    client.send({action: 'restart_session'});
+                    console.log('restart session');
+                } else {
+                    request.session = session;
+                    global.before_filter.loadUser(request, client, function () {
+                        player = request.player;
+                        if (player) {
+                            player.connect(client);
+                        } else {
+                            console.log(arguments);
+                            throw new Error('Player is not defined');
+                        }
+                    });
+                }
             });
         };
         client.on('message', function(msg){
@@ -77,8 +99,10 @@ if (!module.parent) {
             }
         });
         client.on('disconnect', function(){
-            console.log('client ' + player.id + ' disconnected');
-            player.disconnect();
+            if (player) {
+                console.log('client ' + player.id + ' disconnected');
+                player.disconnect();
+            }
         });
     });
 }
