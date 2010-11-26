@@ -1,38 +1,6 @@
 var m = require('../lib/models.js');
 
 module.exports = {
-    loadUser: function (req, res, next) {
-        if (!req.session) {
-            next(new Error('Session required'));
-            return;
-        }
-        m.User.find(req.session.fb.user.id, function () {
-            req.user = this;
-            module.exports.loadPlayer(req, res, next);
-        });
-    },
-    loadPlayer: function (req, res, next) {
-        console.log('req.user = ');
-        console.log(req.user);
-        if (!req.user.player['reversi']) {
-            m.Player.create({user: req.session.fb.user.id}, function () {
-                var player = this;
-                req.player = player;
-                req.user.set_player('reversi', player, function () {
-                    player.loadGame('reversi', next);
-                });
-            });
-        } else {
-            m.Player.find(req.user.player['reversi'], function (err) {
-                if (!err) {
-                    req.player = this;
-                    this.loadGame('reversi', next);
-                } else {
-                    next(new Error('Could not load user with id ' + req.session.player_id));
-                }
-            });
-        }
-    },
     index: function (req, res) {
         console.log(req.just_connected ? 'just connected' : 'not just connected');
         res.render('index.jade', { locals:

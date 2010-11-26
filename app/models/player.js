@@ -1,5 +1,5 @@
-function Player() {
-};
+function Player() { };
+
 Player.attributes = {
     game_id: 'int',
     color: 'string',
@@ -18,6 +18,7 @@ Player.prototype = {
             socket.send(message.toString());
         });
         player.game.player_connected(player);
+        player.ready_to_play();
     },
     disconnect: function () {
         // free database connection
@@ -41,21 +42,25 @@ Player.prototype = {
         }
     },
     loadGame: function loadGame(type, callback) {
-        var user = this;
-        if (this.game_id) {
-            exports.Game.find(this.game_id, function () {
-                user.game = this;
+        var player = this;
+        if (player.game_id) {
+            exports.Game.find(player.game_id, function () {
+                player.game = this;
+                // check if game is over
                 if (this.game.board.terminal_board) {
-                    user.update_attribute('game_id', 0, function () {
-                        user.loadGame(type, callback);
+                    // detach game
+                    player.update_attribute('game_id', 0, function () {
+                        // load new game
+                        player.loadGame(type, callback);
                     });
                 } else {
+                    console.log('gotcha');
                     callback();
                 }
             });
         } else {
             exports.Game.find_free_or_create({type: type}, function () {
-                user.join(this, callback);
+                player.join(this, callback);
             });
         }
     },
@@ -64,6 +69,9 @@ Player.prototype = {
             this.game = game;
             game.join(this, callback);
         });
+    },
+    ready_to_play: function () {
+        this.game.player_ready(this);
     }
 };
 

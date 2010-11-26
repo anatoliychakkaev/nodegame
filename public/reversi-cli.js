@@ -191,16 +191,51 @@ $(function () {
         s[res.player == 'w' ? 'B' : 'W'] = s['0'];
         game = $('#board').reversi(res.player, res.color == 'b', res.position, update_board);
         game.join();
-        var no_socket = false;
+        var send_to_socket = true;
+
+        function update_counter(s) {
+            $('#counter .black').html(s.b);
+            $('#counter .white').html(s.w);
+        }
+
+        function auto_move() {
+            console.log('automove', window.autoplay);
+            var len, move, p;
+            if (window.autoplay) {
+                len = game.board.available_cells.length;
+                if (len == 0) return;
+                switch (window.autoplay) {
+                    case 'up':
+                    move = 0;
+                    break;
+                    case 'down':
+                    move = len - 1;
+                    break;
+                    default:
+                    case 'random':
+                    move = Math.round(Math.random() * (len - 1));
+                    break;
+                }
+                p = game.board.available_cells[move];
+                game.move(p.i + ':' + p.j);
+            }
+        }
+        window.auto_move = auto_move;
+
         game.after_move = function (coords) {
+            console.log('after move ' + coords);
+            console.log(send_to_socket);
+            update_counter(game.board.board_stats);
             if (!game.pwned_by(res.player)) {
                 info.html('Opponent\'s turn.');
             } else {
                 info.html('Your turn.');
             }
-            if (!no_socket) {
+            if (send_to_socket) {
                 SOCKET.send({action: "move", coords: coords});
+            } else {
             }
+            send_to_socket = true;
         };
         var SOCKET = new io.Socket(document.location.hostname);
         SOCKET.connect();
@@ -217,12 +252,30 @@ $(function () {
         } else {
             info.html('Awaiting for opponent connection');
         }
+        update_counter(game.board.board_stats);
 
+        SOCKET.on('disconnect', function () {
+            info.html('You are offline');
+            setTimeout(function () {
+                SOCKET.disconnect();
+                info.html('Reconnecting');
+                try {
+                    SOCKET.connect();
+                    //SOCKET.send({action: 'authorize', secret: BOARD.secret});
+                } catch (e) {
+                    alert(e.message);
+                }
+            }, 1000);
+        });
         SOCKET.on('message', function (msg) {
+            console.log(msg);
             if (typeof msg == 'string') {
                 msg = JSON.parse(msg);
             }
             switch (msg.action) {
+                case 'restart_session':
+                    location.href = location.href;
+                break;
                 case 'opponent_connected':
                     game.join();
                     info.html('Opponent joined. You can move.');
@@ -231,11 +284,21 @@ $(function () {
                     $opp.find('.username').html(msg.user.name);
                     $opp.show();
                 break;
+                case 'opponent_disconnected':
+                    info.html('Opponent disconnected');
+                break;
+                case 'opponent_reconnected':
+                    info.html('Opponent reconnected');
+                break;
                 case 'move':
                     game.join();
-                    no_socket = true;
+                    send_to_socket = false;
                     game.move(msg.coords);
-                    no_socket = false;
+                    if (typeof window.autoplay !== 'undefined') {
+                        setTimeout(function () {
+                            auto_move(window.autoplay);
+                        }, 1000);
+                    }
                 break;
                 case 'end':
                 info.html('End game. You ' + (
@@ -246,4 +309,33 @@ $(function () {
                 break;
             }
         });
+});
+$(function () {
+    // bind cheets
+    // $('#autoplay_random').click(function () {
+        // window.autoplay = !window.autoplay;
+        // if (window.autoplay) {
+            // //window.auto_move();
+        // }
+        // $(this).html(window.autoplay ? 'Switch autoplay off' : 'Switch autoplay on');
+    // });
+    
+    function autoplay_strategy (str) {
+        return function () {
+            console.log('autoplay ' + str);
+            if (window.autoplay) {
+                $('#autoplay_' + window.autoplay).html('Autoplay ' + window.autoplay);
+                window.autoplay = false;
+            } else {
+                $(this).html('Stop autoplay');
+                window.autoplay = str;
+                //window.auto_move();
+            }
+        }
+    };
+    var strategies = ['up', 'down', 'random'];
+    $(strategies).each(function (i, val) {
+        console.log(val);
+        $('#autoplay_' + val).click(autoplay_strategy(val));
+    });
 });

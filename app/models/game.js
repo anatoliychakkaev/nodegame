@@ -11,6 +11,7 @@ Game.attributes =
 ,   cached_starter: 'json'
 ,   opponent: 'player'
 ,   cached_opponent: 'json'
+,   phase: 'int'
 };
 
 /**
@@ -53,6 +54,9 @@ Game.prototype = {
             }
             this.game = new game.createGame(this);
         }
+        if (typeof this.phase == 'undefined') {
+            this.phase = 0;
+        }
     },
     join: function (player, callback) {
         var self = this;
@@ -60,20 +64,28 @@ Game.prototype = {
             console.log('Клиент ' + player.id + ' присоединяется к игре вторым');
             self.set_opponent(player, function () {
                 player.update_attribute('color', 'w', callback);
-                console.log('Уведомляем ожидающего клиента ' + self.starter + ' что началась игра: ');
-                self.connection.publish('player:' + self.starter + ':channel',
-                    JSON.stringify({
-                        action: 'opponent_connected',
-                        user: this.cached_opponent
-                    })
-                );
             });
         } else {
-            // push game to waiting queue
-            self.connection.lpush('wait:' + this.type, this.id);
             self.set_starter(player, function () {
                 player.update_attribute('color', 'b', callback);
             });
+        }
+    },
+    player_ready: function (player) {
+        var self = this;
+        if (player.id == this.starter && this.phase === 0) {
+            // push game to waiting queue
+            this.connection.lpush('wait:' + this.type, this.id);
+            this.update_attribute('phase', 1);
+        } else if (player.id == this.opponent && this.phase == 1) {
+            console.log('Уведомляем ожидающего клиента ' + self.starter + ' что началась игра: ');
+            this.update_attribute('phase', 2);
+            self.connection.publish('player:' + self.starter + ':channel',
+                JSON.stringify({
+                    action: 'opponent_connected',
+                    user: this.cached_opponent
+                })
+            );
         }
     },
     set_starter: function (player, callback) {

@@ -13,3 +13,19 @@ body {
 #board {
   float: left;
 }
+
+#board .head {
+  height: 30px;
+}
+
+#board .head .info {
+  float: right;
+}
+
+#board .head #counter {
+  float: left;
+}
+
+#counter div {
+  float: left;
+}

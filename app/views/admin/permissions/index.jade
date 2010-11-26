@@ -1,0 +1,22 @@
+p Hello, admin
+
+table
+  thead
+    tr
+      th ID
+      th Name
+      th Options
+  tbody
+    - each admin in admins
+      tr( data-admin-id: admin.id )
+        td= admin.id
+        td= admin.info ? admin.info.name : ''
+        td
+          a( href: base_path + admin.id ) Show
+          a( href: base_path + admin.id + '/edit' ) Edit
+          a( href: base_path + admin.id + '/destroy', data-method: 'delete' ) Delete
+
+form( action: '', method: 'POST' )
+  input( name: 'fb_id' )
+  input( type: 'submit', value: 'Create admin' )
+

@@ -7,9 +7,6 @@
   |   secret:   '#{secret}'
   | };
 
-//script( src: 'http://cdn.socket.io/stable/socket.io.js' )
-script( src: 'socket.io.js' )
-script( src: 'jquery.js?' + (new Date).getTime())
 script( src: 'reversi.js?' + (new Date).getTime())
 script( src: 'reversi-cli.js?' + (new Date).getTime())
 
@@ -21,12 +18,25 @@ script( src: 'reversi-cli.js?' + (new Date).getTime())
   .color.black black
 
 #board
-  .info
+  .head
+    .info
+    #counter
+      .black
+      .delim :
+      .white
   canvas( width: '300', height: '300' )
 
 #opponent_info.user_bar( style: opponent ? '' : 'display:none' )
   .avatar
-    img( src: 'https://graph.facebook.com/' + (opponent ? opponent.id : 1) + '/picture?type=large')
+    img( src: 'https://graph.facebook.com/' + (opponent ? opponent.id : 1) + '/picture')
   small.username
     #{opponent ? opponent.name : ''}
   .color.white white
+
+.cheets( style: 'clear: both' )
+  button#autoplay_random Autoplay
+  button#autoplay_up Autoplay up
+  button#autoplay_down Autoplay down
+  button#automove_random Automove
+  button#automove_up Automove up
+  button#automove_down Automove down
