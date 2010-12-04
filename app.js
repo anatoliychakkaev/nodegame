@@ -54,7 +54,15 @@ create_routes(app, 'admin/permissions',
     ,   'POST /update': 'update'
     ,   'GET  /edit/:id': 'edit'
     ,   'GET  /:id': 'show'
-}
+},
+'loadAdmin'
+);
+
+create_routes(app, 'admin/users',
+{   '/': 'index'
+,   'GET /find': 'find'
+},
+'loadAdmin'
 );
 
 
