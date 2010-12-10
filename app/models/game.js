@@ -128,12 +128,25 @@ Game.prototype = {
                     })
                 );
                 if (game.game.board.terminal_board) {
-                    var response = JSON.stringify({action: 'end', info: game.game.board.board_stats});
+                    var stats = game.game.board.board_stats;
+                    var response = JSON.stringify({action: 'end', info: stats});
                     game.connection.publish('player:' + this.opponent + ':channel', response);
                     game.connection.publish('player:' + this.starter  + ':channel', response);
+                    game.finish(stats.b > stats.w);
                 }
             });
         }
+    },
+    finish: function (black_wins) {
+        var game = this;
+        exports.Player.find(game.starter, function (err) {
+            var black = this;
+            exports.Player.find(game.opponent, function () {
+                var white = this;
+                white.update_score(!black_wins);
+            });
+            black.update_score(black_wins);
+        });
     },
     player_connected: function (player) {
     },

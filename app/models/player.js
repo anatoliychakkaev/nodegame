@@ -1,4 +1,5 @@
 function Player() { };
+Player.INITIAL_SCORE = 1000;
 
 Player.attributes = {
     game_id: 'int',
@@ -15,10 +16,33 @@ Player.prototype = {
         console.log('client #', player.id, 'subscribed to channel', this.channel);
         player.pubsub_client.subscribeTo(player.channel, function (channel, message) {
             console.log('publish to channel', player.channel, 'detected by subscriber', player.id);
-            socket.send(message.toString());
+            console.log(arguments);
+            try {
+                socket.send(message.toString());
+            } catch(e) {
+                console.log(e);
+            }
         });
-        player.game.player_connected(player);
-        player.ready_to_play();
+        if (player.game) {
+            player.game.player_connected(player);
+            player.ready_to_play();
+        }
+    },
+    update_score: function (win) {
+        var player = this;
+        if (typeof player.score === 'undefined') {
+            player.score = Player.INITIAL_SCORE;
+        }
+        var multiplier = win ? 1 : -1;
+        player.score += multiplier * 20;
+        player.update_attribute('score', player.score);
+        exports.Game.find(player.game_id, function (err) {
+            if (!err) {
+                Player.connection.set('score:' + player.user + ':' + this.type, player.score);
+            } else {
+                throw err;
+            }
+        });
     },
     disconnect: function () {
         // free database connection
@@ -29,6 +53,7 @@ Player.prototype = {
     },
     perform: function (message) {
         console.log('player', this.id, 'perform');
+        console.log(message);
         var player = this;
         switch (message.action) {
             case 'move':
@@ -46,6 +71,11 @@ Player.prototype = {
         if (player.game_id) {
             exports.Game.find(player.game_id, function () {
                 player.game = this;
+                if (!this.game) {
+                    player.game_id = false;
+                    player.loadGame(type, callback);
+                    return;
+                }
                 // check if game is over
                 if (this.game.board.terminal_board) {
                     // detach game
@@ -59,10 +89,21 @@ Player.prototype = {
                 }
             });
         } else {
+            callback();
+            return;
+            // do not create new game here
             exports.Game.find_free_or_create({type: type}, function () {
                 player.join(this, callback);
             });
         }
+    },
+    join_new_game: function (type, callback) {
+        var player = this;
+        exports.Game.create(function () {
+            this.update_attribute('type', type, function () {
+                player.join(this, callback);
+            });
+        });
     },
     join: function (game, callback) {
         this.update_attribute('game_id', game.id, function () {

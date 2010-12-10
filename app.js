@@ -58,6 +58,12 @@ create_routes(app, 'admin/permissions',
 'loadAdmin'
 );
 
+create_routes(app, 'game_requests', {
+    'POST /': 'create',
+    'GET /:id/accept': 'accept',
+    'GET /:id/decline': 'decline'
+}, 'loadUser');
+
 create_routes(app, 'admin/users',
 {   '/': 'index'
 ,   'GET /find': 'find'

@@ -339,3 +339,5 @@ $(function () {
         $('#autoplay_' + val).click(autoplay_strategy(val));
     });
 });
+
+

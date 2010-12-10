@@ -29,3 +29,13 @@ body {
 #counter div {
   float: left;
 }
+
+ul.leaderboard {
+  clear: both;
+  overflow: hidden;
+}
+
+ul.leaderboard li.player {
+  display: inline-block;
+  width: 100px;
+}
