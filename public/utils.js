@@ -1,5 +1,4 @@
 $(function () {
-    console.log($);
     $('a[data-method]').live('click', function () {
         var method = $(this).attr('data-method').toLowerCase();
         var params = {};

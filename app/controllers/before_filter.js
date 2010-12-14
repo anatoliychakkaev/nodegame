@@ -6,7 +6,7 @@ global.before_filter = {
             next(new Error('Session required'));
             return;
         }
-        m.Admin.find(req.session.fb.user.id, function (not_found) {
+        m.Admin.find(req.session.fb.user_id, function (not_found) {
             if (not_found) {
                 res.redirect('/');
             } else {
@@ -18,7 +18,7 @@ global.before_filter = {
         if (!req.session) {
             throw new Error('Session required');
         }
-        m.User.find(req.session.fb.user.id, function (not_found) {
+        m.User.find(req.session.fb.user_id, function (not_found) {
             if (not_found) {
                 throw new Error('User should be here');
             }
@@ -28,12 +28,14 @@ global.before_filter = {
     },
     loadPlayer: function (req, res, next) {
         var game_type = 'reversi';
+        console.log('loadPlayer');
         var complete = function () {
             if (req.player && req.leaderboard) {
                 next();
             }
         };
         req.user.get_player(game_type, function (player) {
+            console.log('get player callback');
             req.player = player;
             complete();
         });

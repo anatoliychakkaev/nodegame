@@ -33,7 +33,7 @@ User.prototype = {
             exports.Player.find(user.player[game_type], function (err) {
                 var player = this;
                 if (!err) {
-                    player.loadGame(game_type, function () {
+                    player.load_random_game(game_type, function () {
                         callback(player);
                     });
                 } else {
@@ -44,7 +44,7 @@ User.prototype = {
             exports.Player.create({user: user.id}, function () {
                 var player = this;
                 user.set_player(game_type, player, function () {
-                    player.loadGame(game_type, function () {
+                    player.load_random_game(game_type, function () {
                         callback(player);
                     });
                 });
@@ -82,6 +82,9 @@ User.prototype = {
                             lb[j].position = max - parseInt(j, 10);
                             lb[j].me = lb[j].id == me.id;
                         }
+                        User.connection.set('leaderboard:' + me.id + ':' + game_type, JSON.stringify(lb), function () {
+                            User.connection.expire('leaderboard:' + me.id + ':' + game_type, 300);
+                        });
                         callback(lb);
                     }
                 });

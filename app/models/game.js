@@ -74,6 +74,7 @@ Game.prototype = {
     player_ready: function (player) {
         var self = this;
         if (player.id == this.starter && this.phase === 0) {
+            console.log('push game to waiting queue');
             // push game to waiting queue
             this.connection.lpush('wait:' + this.type, this.id);
             this.update_attribute('phase', 1);

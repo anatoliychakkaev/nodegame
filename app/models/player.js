@@ -89,9 +89,15 @@ Player.prototype = {
                 }
             });
         } else {
-            callback();
-            return;
+            // throw new Error('Game not exists');
             // do not create new game here
+        }
+    },
+    load_random_game: function (type, callback) {
+        var player = this;
+        if (this.game_id) {
+            this.loadGame(type, callback);
+        } else {
             exports.Game.find_free_or_create({type: type}, function () {
                 player.join(this, callback);
             });
@@ -113,6 +119,9 @@ Player.prototype = {
     },
     ready_to_play: function () {
         this.game.player_ready(this);
+    },
+    leave_game: function (callback) {
+        this.update_attribute('game_id', 0, callback);
     }
 };
 
