@@ -1,9 +1,3 @@
-[submodule "vendor/redis-node-client"]
-	path = vendor/redis-node-client
-	url = http://github.com/fictorial/redis-node-client.git
-[submodule "vendor/js-yaml"]
-	path = vendor/js-yaml
-	url = http://github.com/visionmedia/js-yaml.git
 [submodule "vendor/orm"]
 	path = vendor/orm
 	url = git://github.com/1602/orm.git
