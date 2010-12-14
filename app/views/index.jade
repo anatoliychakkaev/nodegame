@@ -1,6 +1,6 @@
 ul.leaderboard
   - each player in leaderboard
-    li.player
+    li.player( data-id: player.id )
       .rank= player.position
       .avatar
         img( src: 'https://graph.facebook.com/' + player.id + '/picture' )

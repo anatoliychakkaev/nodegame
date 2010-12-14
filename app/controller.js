@@ -1,7 +1,7 @@
 var m = require('../lib/models.js');
 
 module.exports = {
-    index: function (req, res) {
+    index: function index (req, res) {
         console.log(req.just_connected ? 'just connected' : 'not just connected');
         console.log(req.leaderboard);
         if (req.player.game) {
@@ -16,6 +16,11 @@ module.exports = {
                 }
             });
         } else {
+            req.player.load_random_game('reversi', function (game) {
+                req.player.game = game;
+                index(req, res);
+            });
+            return;
             res.render('index.jade', { locals:
                 {   leaderboard: req.leaderboard
                 }
@@ -31,6 +36,11 @@ module.exports = {
             this.save(function () {
                 res.send('OK');
             });
+        });
+    },
+    leave_game: function (req, res) {
+        req.player.leave_game(function () {
+            res.redirect('/');
         });
     }
 };

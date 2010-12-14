@@ -3,14 +3,20 @@
  * Module dependencies.
  */
 
+var h = (new Date).getHours();
+var d = (new Date).getDay();
 var express = require('express'),
     app = module.exports = express.createServer(),
     RedisStore = require('connect-redis'),
     store = new RedisStore,
-    facebooker = require('./lib/facebooker.js'),
+    facebooker = require('./lib/facebooker.js').init({
+        api_key: 'f4f7be55dfbc4d5993ccb2c7d0332c5b',
+        api_secret: '4dc12a8bd95523275aec2179aeab28df',
+        canvas_name: 'nodegame',
+        callback_url: 'http://game.node.xpend.net:1603/',// h >= 21 || h < 11 || d == 6 || d === 0 ? 'http://webdesk.homelinux.org:1602/' : 'http://ts.flatsoft.com:4602/',
+        global: true
+    }),
     io = require('socket.io');
-
-global.facebooker = facebooker;
 
 var session_key = 'connect.sidw';
 
@@ -46,6 +52,12 @@ var create_routes = require('./lib/routing.js').create_routes;
 
 console.log(global.before_filter);
 app.get('/',     facebooker.check_connection, global.before_filter.loadUser, c.index);
+app.get('/leave_game',     facebooker.check_connection, global.before_filter.loadUser, c.leave_game);
+app.get('/test_facebook', global.before_filter.loadUser, function (req, res) {
+    facebooker.users.getInfo(req.user.id, 'username', null, function (resp) {
+        res.send(resp);
+    });
+});
 create_routes(app, 'admin/permissions',
     {   'GET  /': 'index'
     ,   'POST /': 'create'
@@ -82,6 +94,7 @@ if (!module.parent) {
     var socket = io.listen(app);
 
     socket.on('connection', function(client){
+        console.log('socket connection');
         var player;
         var request = {};
 
@@ -120,4 +133,3 @@ if (!module.parent) {
         });
     });
 }
-
